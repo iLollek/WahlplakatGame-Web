@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WahlplakatGame</title>
+    <link rel="stylesheet" href="/wahlplakatgame/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/wahlplakatgame/assets/icon.ico">
+</head>
+<body>
+    <!-- Auth Page -->
+    <div id="auth-page" class="page active">
+        <div class="container">
+            <h1 class="title">WahlplakatGame</h1>
+            <div class="subtitle">Rate die Partei hinter den Wahlsprüchen!</div>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="login">Anmelden</button>
+                    <button class="tab-btn" data-tab="register">Registrieren</button>
+                </div>
+                
+                <!-- Login Tab -->
+                <div id="login-tab" class="tab-content active">
+                    <div class="form-container">
+                        <h2>Willkommen zurück!</h2>
+                        
+                        <div class="form-group">
+                            <label for="login-username">Benutzername</label>
+                            <input type="text" id="login-username" placeholder="Benutzername eingeben" maxlength="18">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="login-password">Passwort</label>
+                            <input type="password" id="login-password" placeholder="Passwort eingeben">
+                        </div>
+                        
+                        <button id="login-btn" class="btn btn-primary">Anmelden</button>
+                        
+                        <div class="info-text">Noch kein Konto? → Wechsle zum Registrieren-Tab</div>
+                    </div>
+                </div>
+                
+                <!-- Register Tab -->
+                <div id="register-tab" class="tab-content">
+                    <div class="form-container">
+                        <h2>Neues Konto erstellen</h2>
+                        
+                        <div class="form-group">
+                            <label for="register-username">Benutzername</label>
+                            <div class="input-with-button">
+                                <input type="text" id="register-username" placeholder="Benutzername (max. 18 Zeichen)" maxlength="18">
+                                <button id="check-username-btn" class="btn btn-secondary">Prüfen</button>
+                            </div>
+                            <div id="username-status" class="status-text"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-password">Passwort</label>
+                            <input type="password" id="register-password" placeholder="Passwort (min. 6 Zeichen)">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-password-repeat">Passwort wiederholen</label>
+                            <input type="password" id="register-password-repeat" placeholder="Passwort erneut eingeben">
+                        </div>
+                        
+                        <button id="register-btn" class="btn btn-success">Konto erstellen</button>
+                        
+                        <div class="info-text">Bereits ein Konto? → Wechsle zum Anmelden-Tab</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Page -->
+    <div id="game-page" class="page">
+        <div class="game-container">
+            <!-- Main Game Area -->
+            <div class="game-main">
+                <div class="game-box" id="game-box">
+                    <div class="game-message">Verbinde mit Server...</div>
+                </div>
+                
+                <div class="game-controls">
+                    <select id="partei-dropdown" class="dropdown">
+                        <option>Lade Parteien...</option>
+                    </select>
+                    <button id="answer-btn" class="btn btn-primary" disabled>Antwort senden</button>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="game-sidebar">
+                <div class="user-info">
+                    <h3 id="user-nickname">Spieler</h3>
+                    <div id="user-points">Punkte: 0</div>
+                </div>
+                
+                <div class="players-box">
+                    <h4>👥 Aktuelle Spieler</h4>
+                    <ul id="players-list"></ul>
+                </div>
+                
+                <div class="leaderboard-box">
+                    <h4>🏆 Top-Spieler</h4>
+                    <ul id="leaderboard-list"></ul>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="source-btn" class="btn btn-secondary" disabled>Quelle anzeigen</button>
+                    <button id="leave-btn" class="btn btn-danger">Spiel verlassen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Lädt...</div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/wahlplakatgame/js/main.js"></script>
+    <script src="/wahlplakatgame/js/auth.js"></script>
+    <script src="/wahlplakatgame/js/game.js"></script>
+</body>
+</html>
