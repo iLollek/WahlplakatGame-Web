@@ -249,6 +249,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-height: 0;
 }
 
 .game-box {
@@ -260,6 +261,8 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     font-family: 'Courier New', monospace;
     line-height: 1.6;
+    max-height: 100%;
+    min-height: 0;
 }
 
 .game-message {

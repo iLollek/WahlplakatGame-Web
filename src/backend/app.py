@@ -41,7 +41,16 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # WICHTIG: async_mode='eventlet' für stabile WebSocket Verbindungen
-socketio = socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', logger=False, engineio_logger=False, path='/wahlplakatgame/socket.io')
+socketio = SocketIO(
+    app, 
+    cors_allowed_origins="*", 
+    async_mode='eventlet', 
+    logger=False, 
+    engineio_logger=False, 
+    path='/wahlplakatgame/socket.io',
+    ping_timeout=60,      # ← NEU: Warte 60s auf Pong
+    ping_interval=25      # ← NEU: Sende alle 25s ein Ping
+)
 
 # Services initialisieren
 db_service = DatabaseService()

@@ -2,6 +2,7 @@ import threading
 import logging
 import random
 from typing import Dict, Optional
+import eventlet
 
 logger = logging.getLogger(__name__)
 
@@ -96,11 +97,12 @@ class GameLobby:
             
             self.current_quelle = self.current_wahlspruch.quelle
             
-            # 15 Sekunden Timer
+            # 15 Sekunden Timer - EVENTLET VERSION
             if self.round_timer:
                 self.round_timer.cancel()
-            self.round_timer = threading.Timer(15.0, self.game_service_callback)
-            self.round_timer.start()
+            
+            # ← WICHTIG: Nutze eventlet.spawn_after statt threading.Timer
+            self.round_timer = eventlet.spawn_after(15.0, self.game_service_callback)
             
             return {
                 'round_number': self.round_number,
@@ -289,7 +291,8 @@ class GameService:
             
             if all_answered and len(players_who_can_answer) > 0:
                 if self.lobby.round_timer:
-                    self.lobby.round_timer.cancel()
+                    # ← WICHTIG: eventlet greenthread killen
+                    eventlet.kill(self.lobby.round_timer)
                 # Runde sofort beenden
                 self.end_current_round()
         else:
@@ -310,5 +313,5 @@ class GameService:
             # Ergebnisse senden
             self.socketio.emit('round_end', result)
             
-            # Nach 5 Sekunden nächste Runde
-            threading.Timer(5.0, self.auto_start_next_round).start()
+            # Nach 5 Sekunden nächste Runde - EVENTLET VERSION
+            eventlet.spawn_after(5.0, self.auto_start_next_round)
