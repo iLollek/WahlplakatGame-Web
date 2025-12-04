@@ -21,6 +21,7 @@ class GameLobby:
         self.round_timer = None
         self.round_active = False
         self.round_number = 0
+        self.current_round_id = 0  # ← NEU: Eindeutige ID für jede Runde
         self.lock = threading.Lock()
     
     def add_player(self, session_token: str, user_id: int, nickname: str, sid: str, points: int):
@@ -80,6 +81,8 @@ class GameLobby:
         """Neue Runde starten"""
         with self.lock:
             self.round_number += 1
+            self.current_round_id += 1  # ← NEU: Erhöhe Round-ID
+            round_id = self.current_round_id  # ← Speichere für Timer-Callback
             self.round_active = True
             self.current_answers = {}
             
@@ -97,18 +100,37 @@ class GameLobby:
             
             self.current_quelle = self.current_wahlspruch.quelle
             
-            # 15 Sekunden Timer - EVENTLET VERSION
-            if self.round_timer:
-                self.round_timer.cancel()
+            logger.info(f"🕐 Starte 15-Sekunden Timer für Runde {self.round_number} (ID: {round_id})")
             
-            # ← WICHTIG: Nutze eventlet.spawn_after statt threading.Timer
-            self.round_timer = eventlet.spawn_after(15.0, self.game_service_callback)
+        # Timer AUSSERHALB des Locks starten
+        # ← WICHTIG: Übergebe round_id an den Callback
+        self.round_timer = eventlet.spawn_after(
+            15.0,
+            self._timer_callback,
+            round_id  # ← Round-ID mitgeben
+        )
+        
+        return {
+            'round_number': self.round_number,
+            'wahlspruch': self.current_wahlspruch.spruch,
+            'wahlspruch_id': self.current_wahlspruch.id
+        }
+    
+    def _timer_callback(self, expected_round_id):
+        """Interner Timer-Callback - prüft ob dies noch die aktuelle Runde ist"""
+        with self.lock:
+            if expected_round_id != self.current_round_id:
+                logger.info(f"⏹️  Timer für alte Runde {expected_round_id} ignoriert (aktuell: {self.current_round_id})")
+                return
             
-            return {
-                'round_number': self.round_number,
-                'wahlspruch': self.current_wahlspruch.spruch,
-                'wahlspruch_id': self.current_wahlspruch.id
-            }
+            if not self.round_active:
+                logger.info("⏹️  Runde bereits beendet - Timer ignoriert")
+                return
+            
+            logger.info(f"⏰ 15 Sekunden sind um für Runde {self.round_number} - beende Runde")
+        
+        # Callback ausführen (außerhalb des Locks)
+        self.game_service_callback()
     
     def submit_answer(self, session_token: str, partei: str):
         """Antwort registrieren"""
@@ -290,10 +312,8 @@ class GameService:
             all_answered = all(p['answered'] for p in players_who_can_answer)
             
             if all_answered and len(players_who_can_answer) > 0:
-                if self.lobby.round_timer:
-                    # ← WICHTIG: eventlet greenthread killen
-                    eventlet.kill(self.lobby.round_timer)
-                # Runde sofort beenden
+                logger.info("✅ Alle Spieler haben geantwortet - beende Runde vorzeitig")
+                # Runde sofort beenden (Timer wird durch round_active=False ignoriert)
                 self.end_current_round()
         else:
             self.socketio.emit('error', {'message': message}, room=sid)
